@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
@@ -13,62 +14,45 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        public AuthController(IConfiguration configuration)
+        public AuthController(IAuthService authService)
         {
-            this.configuration = configuration;
+            this.authService = authService;
         }
-        public static User user = new User();
-        private readonly IConfiguration configuration;
+        //public static User user = new User();
+        private readonly IAuthService authService;
 
         [HttpPost("register")]
-        public ActionResult<User> Register(User request)
+        public async Task<ActionResult<User>> Register(UserDto request)
         {
-            var hassedPassword = new PasswordHasher<User>().HashPassword(user, request.PasswordHash);
+            var result = await authService.CreateUserAsync(request);
+            if (result is null) {
+                return BadRequest("User Already Exist");
+            }
+            //var hassedPassword = new PasswordHasher<User>().HashPassword(user, request.PasswordHash);
 
-            user.Name = request.Name;
-            user.PasswordHash = hassedPassword;
+            //user.Name = request.Name;
+            //user.PasswordHash = hassedPassword;
 
-            return Ok(user);
+            return Ok(result);
         }
 
         [HttpPost("login")]
 
-        public ActionResult<string> Login(User request)
+        public ActionResult<string> Login(UserDto request)
         {
-            if (user.Name != request.Name)
-                return BadRequest("User Name Doesn't Exist");
+            //if (user.Name != request.Name)
+            //    return BadRequest("User Name Doesn't Exist");
 
-            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.PasswordHash) == PasswordVerificationResult.Failed)
-                return BadRequest("Wrong Password");
+            //if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.PasswordHash) == PasswordVerificationResult.Failed)
+            //    return BadRequest("Wrong Password");
 
             //string token = "Success";
 
-            return Ok(CreateToken(user));
+            var result = authService.LoginAsync(request);
+
+            return Ok(result);
         }
 
-        private string CreateToken(User user)
-        {
-            // claims
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Name)
-            };
-
-            //signature key
-            var key = new SymmetricSecurityKey(
-                                        Encoding.UTF8.GetBytes(configuration.GetValue<string>("Appsettings:Token")!));
-
-            var credientials = new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
-
-            // creating token description
-            var tokenDescriptor = new JwtSecurityToken(
-                                                issuer: configuration.GetValue<string>("Appsettings:Issuer"),
-                                                audience: configuration.GetValue<string>("Appsettings:Audience"),
-                                                claims: claims,
-                                                signingCredentials: credientials,
-                                                expires: DateTime.UtcNow.AddHours(1)
-                                                );
-            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-        }
+       
     }
 }
