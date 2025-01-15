@@ -26,7 +26,8 @@ namespace WebApplication1.Controllers
         public async Task<ActionResult<User>> Register(UserDto request)
         {
             var result = await authService.CreateUserAsync(request);
-            if (result is null) {
+            if (result is null)
+            {
                 return BadRequest("User Already Exist");
             }
             //var hassedPassword = new PasswordHasher<User>().HashPassword(user, request.PasswordHash);
@@ -39,12 +40,20 @@ namespace WebApplication1.Controllers
 
         [HttpPost("login")]
 
-        public async Task<ActionResult<string>> Login(UserDto request)
+        public async Task<ActionResult<string>> Login(LoginDto request)
         {
-           
+
             var result = await authService.LoginAsync(request);
             return Ok(result);
         }
+
+        [HttpGet("getall")]
+        public async Task<ActionResult<List<User>>> GetAllUsers(int? pagestart=0, int? pageEnd=10)
+        {
+            var result = await authService.GetAllUser(pagestart,pageEnd);
+            return Ok(result);
+        }
+
 
         [HttpGet]
         [Authorize]
@@ -53,6 +62,14 @@ namespace WebApplication1.Controllers
             return Ok("Authrized");
         }
 
-       
+        [HttpGet("admin-only")]
+        [Authorize(Roles = "admin")]
+        public IActionResult AuthenticatedAdminOnlyEndPoint()
+        {
+            return Ok("Authrized");
+        }
+
+
+
     }
 }

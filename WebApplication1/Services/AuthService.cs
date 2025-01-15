@@ -20,6 +20,11 @@ namespace WebApplication1.Services
             this.dbContext = dbContext;
             this.configuration = configuration;
         }
+
+        public async Task<List<User>> GetAllUser(int? pagestart = 0, int? pageEnd = 10)
+        {
+            return await dbContext.Users.Skip((int)pagestart).Take((int)pageEnd).ToListAsync();
+        }
         public async Task<User?> CreateUserAsync(UserDto request)
         {
             //if (await dbContext.Users.AnyAsync(x => x.Name == request.Name))
@@ -49,7 +54,7 @@ namespace WebApplication1.Services
            
         }
 
-        public async Task<string?> LoginAsync(UserDto request)
+        public async Task<string?> LoginAsync(LoginDto request)
         {
             var user = await dbContext.Users.FirstOrDefaultAsync(x=> x.Name == request.Name);
             if(user is null)
@@ -69,7 +74,8 @@ namespace WebApplication1.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, user.Role),
             };
 
             //signature key
