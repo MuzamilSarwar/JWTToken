@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +19,7 @@ namespace WebApplication1.Controllers
         {
             this.authService = authService;
         }
-        //public static User user = new User();
+
         private readonly IAuthService authService;
 
         [HttpPost("register")]
@@ -38,19 +39,18 @@ namespace WebApplication1.Controllers
 
         [HttpPost("login")]
 
-        public ActionResult<string> Login(UserDto request)
+        public async Task<ActionResult<string>> Login(UserDto request)
         {
-            //if (user.Name != request.Name)
-            //    return BadRequest("User Name Doesn't Exist");
-
-            //if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.PasswordHash) == PasswordVerificationResult.Failed)
-            //    return BadRequest("Wrong Password");
-
-            //string token = "Success";
-
-            var result = authService.LoginAsync(request);
-
+           
+            var result = await authService.LoginAsync(request);
             return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult AuthenticatedOnlyEndPoint()
+        {
+            return Ok("Authrized");
         }
 
        
