@@ -40,7 +40,7 @@ namespace WebApplication1.Controllers
 
         [HttpPost("login")]
 
-        public async Task<ActionResult<string>> Login(LoginDto request)
+        public async Task<ActionResult<TokenResponseDto>> Login(LoginDto request)
         {
 
             var result = await authService.LoginAsync(request);
@@ -69,6 +69,14 @@ namespace WebApplication1.Controllers
             return Ok("Authrized");
         }
 
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var result = await authService.RefreshTokenAsync(request);
+            if (result is null)
+                return BadRequest("refreshToken Dosen't Match");
+            return Ok(result);
+        }
 
 
     }
